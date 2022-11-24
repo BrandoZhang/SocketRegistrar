@@ -61,19 +61,13 @@ unsigned int get_local_dynamic_port(int sockfd);
 
 int setup_server_socket(int & sockfd, const int socket_type, const std::string port);
 
-/**
- * Sending message via existed TCP socket.
- * 
- * @param sockfd File descriptor of an existed TCP socket.
- * @return Status code of sending the given message.
- */
+/* Sending message via existed TCP socket */
 int tcp_send_msg(int sockfd, std::string msg);
 
 /* Receiving message via existed TCP socket */
 int tcp_recv_msg(int sockfd, std::string & msg);
 
-/* Sending message via existed UDP socket
-*/
+/* Sending message via existed UDP socket */
 int udp_send_msg(int sockfd, std::string host, std::string port, std::string msg);
 
 /* Receiving message via existed UDP socket

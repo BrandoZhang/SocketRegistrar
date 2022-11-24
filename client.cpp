@@ -16,7 +16,9 @@
 #define MAX_ATTEMPTS 3
 
 
-/* Set up a TCP socket with dynamic port */
+/* Set up a TCP socket with dynamic port
+ * Refer to https://beej.us/guide/bgnet/html/#a-simple-stream-client
+ */
 int setup_client_socket(int & sockfd, std::string host, std::string port) {
     struct addrinfo hints, *servinfo, *p;
     int status;

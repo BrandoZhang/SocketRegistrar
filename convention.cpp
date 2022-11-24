@@ -23,6 +23,7 @@ void parse_key_value_by(char deliminator, std::string origin_data, std::string &
     getline(line_stream, key, deliminator);
     getline(line_stream, value);
     // Remove annoying `\r` and `\n` from end of the value for string comparison sake :)
+    // Refer to https://stackoverflow.com/questions/45956271/stdgetline-reads-carriage-return-r-into-the-string-how-to-avoid-that
     value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
     value.erase(std::remove(value.begin(), value.end(), '\n'), value.end());
 }
@@ -49,6 +50,7 @@ void parse_course_info(std::string origin_data, std::unordered_map<std::string, 
     getline(line_stream, course_code, ',');
     getline(line_stream, course_info);
     // Remove annoying `\r` and `\n` from end of the value for string comparison sake :)
+    // Refer to https://stackoverflow.com/questions/45956271/stdgetline-reads-carriage-return-r-into-the-string-how-to-avoid-that
     course_info.erase(std::remove(course_info.begin(), course_info.end(), '\r'), course_info.end());
     course_info.erase(std::remove(course_info.begin(), course_info.end(), '\n'), course_info.end());
     course_db[course_code] = course_info;
@@ -61,20 +63,12 @@ void parse_course_detail(std::string course_info, std::string & credit, std::str
     getline(line_stream, days, ',');
     getline(line_stream, course_name);
     // Remove annoying `\r` and `\n` from end of the value for string comparison sake :)
+    // Refer to https://stackoverflow.com/questions/45956271/stdgetline-reads-carriage-return-r-into-the-string-how-to-avoid-that
     course_name.erase(std::remove(course_name.begin(), course_name.end(), '\r'), course_name.end());
     course_name.erase(std::remove(course_name.begin(), course_name.end(), '\n'), course_name.end());
 }
-// // refer to Beej's socket tutorial
-// void sigchld_handler(int s) {
-//     // waitpid() might overwrite errno, so we save and restore it
-//     int saved_errno = errno;
 
-//     while(waitpid(-1, NULL, WNOHANG) > 0);
-
-//     errno = saved_errno;
-// }
-
-// get sockaddr, IPv4 or IPv6, refer to Beej's socket tutorial
+// Get sockaddr, IPv4 or IPv6, refer to Beej's socket tutorial
 void *get_in_addr(struct sockaddr *sa) {
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
@@ -82,6 +76,7 @@ void *get_in_addr(struct sockaddr *sa) {
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+// Get local dynamic port according to sockfd, refer to TA's code: https://piazza.com/class/l7dlij7ko7v4bv/post/188
 unsigned int get_local_dynamic_port(int sockfd) {
     unsigned int client_port;
     struct sockaddr_in client_address;
@@ -92,6 +87,7 @@ unsigned int get_local_dynamic_port(int sockfd) {
     return client_port;
 }
 
+// Refer to https://beej.us/guide/bgnet/html/#a-simple-stream-server and https://beej.us/guide/bgnet/html/#datagram
 int setup_server_socket(int & sockfd, const int socket_type, const std::string port) {
     struct addrinfo hints, *servinfo, *p;
     int status;
@@ -103,7 +99,6 @@ int setup_server_socket(int & sockfd, const int socket_type, const std::string p
     hints.ai_socktype = socket_type;
     hints.ai_flags = AI_PASSIVE;
 
-    // TODO: Why in server side we put NULL here?
     if ((status = getaddrinfo(NULL, port.c_str(), &hints, &servinfo) != 0)) {
         std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
         return 1;
@@ -112,19 +107,19 @@ int setup_server_socket(int & sockfd, const int socket_type, const std::string p
     // loop through all the results and bind to the first we can
     for (p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            perror("socket()");  // TODO: error msg here
+            perror("socket()");
             continue;
         }
 
         // reuse the port to lose the pesky "Address already in use" error message
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1) {
-            perror("setsockopt()");  // TODO: error msg here
-            exit(1);  // TODO: error code
+            perror("setsockopt()");
+            exit(1);
         }
 
         if (bind(sockfd, p->ai_addr, p->ai_addrlen)) {
             close(sockfd);
-            perror("bind()");  // TODO: error msg here
+            perror("bind()");
             continue;
         }
 
@@ -135,17 +130,18 @@ int setup_server_socket(int & sockfd, const int socket_type, const std::string p
 
     if (p == NULL) {
         std::cerr << "Failed to bind socket." << std::endl;
-        exit(1);  // TODO: conventions
+        exit(1);
     }
 
     if (socket_type == USE_TCP && listen(sockfd, BACKLOG) == -1) {
-        perror("listen()");  // TODO: error msg here
+        perror("listen()");
         exit(1);
     }
 
     return 0;
 }
 
+// Refer to https://beej.us/guide/bgnet/html/#a-simple-stream-server and https://beej.us/guide/bgnet/html/#a-simple-stream-client
 int tcp_send_msg(int sockfd, std::string msg) {
 #ifdef __DEBUG__
     std::cout << "[DEBUG] Attempts to send: " << msg << std::endl;
@@ -159,19 +155,20 @@ int tcp_send_msg(int sockfd, std::string msg) {
 
     if (numbytes < (int) msg.length()) {
         std::cerr << "Expected to send " << msg.length() << " bytes, but only " << numbytes << " bytes are sent through TCP." << std::endl;
-        return 3;  // TODO: error code
+        return 3;
     }
 
     return SUCCESS;
 }
 
+// Refer to https://beej.us/guide/bgnet/html/#a-simple-stream-server and https://beej.us/guide/bgnet/html/#a-simple-stream-client
 int tcp_recv_msg(int sockfd, std::string & msg) {
     int numbytes;
     char buf[MAXBUFLEN];
 
     if ((numbytes = recv(sockfd, buf, MAXBUFLEN - 1, 0)) == -1) {
         perror("recv()");
-        exit(1);  // TODO: exit code here
+        exit(1);
     }
 
     buf[numbytes] = '\0';
@@ -204,6 +201,7 @@ int tcp_recv_msg(int sockfd, std::string & msg) {
     return SUCCESS;
 }
 
+// Refer to https://beej.us/guide/bgnet/html/#datagram
 int udp_send_msg(int sockfd, std::string host, std::string port, std::string msg) {
     struct addrinfo hints, *servinfo, *p;
     int status;
@@ -236,17 +234,18 @@ int udp_send_msg(int sockfd, std::string host, std::string port, std::string msg
 
     if (p == NULL) {
         std::cerr << "Failed to send the message." << std::endl;
-        return 2;  // TODO: error code
+        return 2;
     }
 
     if (numbytes < (int) msg.length()) {
         std::cerr << "Expected to send " << msg.length() << " bytes, but only " << numbytes << " bytes are sent through UDP." << std::endl;
-        return 3;  // TODO: error code
+        return 3;
     }
 
     return 0;
 }
 
+// Refer to https://beej.us/guide/bgnet/html/#datagram
 int udp_recv_msg(int sockfd, std::string & msg) {
     int numbytes;
     struct sockaddr_storage their_addr;
@@ -254,8 +253,8 @@ int udp_recv_msg(int sockfd, std::string & msg) {
     socklen_t addr_len = sizeof their_addr;
 
     if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN - 1, 0, (struct sockaddr *)&their_addr, &addr_len)) == -1) {
-        perror("recvfrom()");  // TODO: error msg here
-        exit(1);  // TODO: exit code here
+        perror("recvfrom()");
+        exit(1);
     }
     buf[numbytes] = '\0';
     msg = buf;

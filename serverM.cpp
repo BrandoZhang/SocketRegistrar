@@ -148,7 +148,7 @@ void query_routine(int tcp_child_sockfd, int udp_sockfd, string query_payload, s
     }
 }
 
-int setup_child_tcp_socket(int sockfd, int & child_sockfd) {
+int setup_child_tcp_socket(int sockfd, int & child_sockfd) {  // Refer to https://beej.us/guide/bgnet/html/#a-simple-stream-server
     struct sockaddr_storage their_addr;  // connector's address information
     socklen_t sin_size = sizeof their_addr;
     int new_sockfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);

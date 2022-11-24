@@ -20,14 +20,11 @@
 
 using std::string;
 
-const string CRED_FILE = "cred.txt";  // TODO: Change this before submission
+const string CRED_FILE = "cred.txt";
 
-void bootup() {
-    std::cout << "The ServerC is up and running using UDP on port " << PORT_SERVER_C << "." << std::endl;
-}
 
 template<typename K, typename V>
-void print_map(std::unordered_map<K, V> const &m)
+void print_map(std::unordered_map<K, V> const &m)  // Refer to https://www.techiedelight.com/print-keys-values-map-cpp/
 {
     for (auto const &pair: m) {
         std::cout << "{" << pair.first << ": " << pair.second << "}\n";
@@ -36,7 +33,7 @@ void print_map(std::unordered_map<K, V> const &m)
 
 int main(int argc, char *argv[]) {
     // Booting Up (Only while starting)
-    bootup();
+    std::cout << "The ServerC is up and running using UDP on port " << PORT_SERVER_C << "." << std::endl;
 
     // Creating database for encrypted username and password pair
     std::unordered_map<string, string> cred_db; 
@@ -48,6 +45,7 @@ int main(int argc, char *argv[]) {
             getline(lineStream, key, ',');
             getline(lineStream, value);
             // Remove annoying `\r` and `\n` from end of the value for string comparison sake :)
+            // Refer to https://stackoverflow.com/questions/45956271/stdgetline-reads-carriage-return-r-into-the-string-how-to-avoid-that
             value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
             value.erase(std::remove(value.begin(), value.end(), '\n'), value.end());
             cred_db[key] = value;
