@@ -60,13 +60,13 @@ int setup_client_socket(int & sockfd, std::string host, std::string port) {
 
 std::string encode_user_login(std::string & username) {
     std::cout << "Please enter the username: ";
-    std::cin >> username;
+    std::getline(std::cin, username);
     // count num of characters in username
     std::string num_chars_username = std::to_string(username.length());
 
     std::string password;
     std::cout << "Please enter the password: ";
-    std::cin >> password;
+    std::getline(std::cin, password);
 
     std::string username_password_pair = username + password;
     std::string encoded_msg = encode_msg(num_chars_username, username_password_pair);
