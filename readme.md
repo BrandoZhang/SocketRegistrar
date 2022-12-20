@@ -1,8 +1,8 @@
-# EE450 Socket Project
+# SocketRegistrar
 
-Name: Zhiyi Zhang
-
-Student ID: 8625338365
+|                Network Topology                 | 
+|:-----------------------------------------------:|
+| ![Network Topology](/docs/network_topology.png) |
 
 ## Project Description
 
@@ -24,15 +24,19 @@ Such a design fits the scenario that `client` will new a TCP connection per requ
 
 ```
 .
-├── client.cpp          // source code of client, prompts user to login, and query course information
-├── convention.cpp      // source code of agreements or utilities shared by communication entities
-├── convention.hpp      // header of agreements, e.g., status code, request/response header
-├── Makefile            // Makefile of this project
-├── readme.md           // README of this project
-├── serverC.cpp         // source code of serverC, parses `cred.txt` and stores username-password pairs in a hashmap 
-├── serverCS.cpp        // source code of serverCS, parses `cs.txt` and stores coursecode-info pairs in a hashmap
-├── serverEE.cpp        // source code of serverEE, parses `ee.txt` and stores coursecode-info pairs in a hashmap
-└── serverM.cpp         // source code of serverM, processes request from `client` and makes reponses after contacting other backend servers
+├── Makefile                // Makefile of this project
+├── client.cpp              // source code of client, prompts user to login, and query course information
+├── convention.cpp          // source code of agreements or utilities shared by communication entities
+├── convention.hpp          // header of agreements, e.g., status code, request/response header
+├── cred.txt                // mocked database file, containing encrypted usernames and passwords, only be accessible by the serverC 
+├── cred_unencrypted.txt    // unencrypted version of `cred.txt`, only for testing 
+├── cs.txt                  // mocked database file, containing CS course information, only be accessible by the serverCS
+├── ee.txt                  // mocked database file, containing EE course information, only be accessible by the serverEE
+├── readme.md               // README of this project
+├── serverC.cpp             // source code of serverC, parses `cred.txt` and stores username-password pairs in a hashmap 
+├── serverCS.cpp            // source code of serverCS, parses `cs.txt` and stores coursecode-info pairs in a hashmap
+├── serverEE.cpp            // source code of serverEE, parses `ee.txt` and stores coursecode-info pairs in a hashmap
+└── serverM.cpp             // source code of serverM, processes request from `client` and makes reponses after contacting other backend servers
 ```
 
 ## How to Use
@@ -112,19 +116,6 @@ Since all the headers are added and parsed by the programs, the `payload`, which
    "<result_code>" is one of `FOUND_COURSE_INFO` or `NO_COURSE_CODE` as defined in `convention.hpp`.
    "<info>" is the info the `client` is looking for if the request is valid, otherwise, it will be dummy info.
 
-
-## Clarification
-
-- As it is not specified in the PDF, `client` will new TCP each time it send message to the `serverM`. 
- The `client` TCP port is assigned dynamically but not be consistent throughout the whole process. 
- In this way, the logic of managing TCP socket file descriptor is simplified.
- Actually, it acts like non-persistent HTTP.
- It is acceptable according to [Piazza 376](https://piazza.com/class/l7dlij7ko7v4bv/post/376).
-
-- The maximum buffer size is set to 256 as [Piazza 289](https://piazza.com/class/l7dlij7ko7v4bv/post/289) assumes one entry will be less than 200 characters.
-
-- The on-screen message related to TCP port number in main server displays the TCP port number of `serverM` instead of `client` to be consistent.
-  If I misunderstand the requirement, you can uncomment `#define __DEBUG__` line in `convention.hpp` to show all the debug messages, including the remote ports.
 
 ## Reference
 
